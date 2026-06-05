@@ -88,3 +88,32 @@ Date: 2026-06-05
 - `Some(value)` means parsing succeeded.
 - `None` means parsing failed or the line is not a heading.
 - Markdown headings usually have levels from 1 to 6.
+
+## Lesson 06: Represent headings with struct
+
+Date: 2026-06-05
+
+### What I learned
+
+- Used `struct` to represent a Markdown heading.
+- Added fields to `Heading`: `level`, `title`, `line`, and `character`.
+- Used `#[derive(Debug, Clone)]` to automatically implement useful traits.
+- Used `impl` to define functions related to a struct.
+- Used `Self` inside an `impl` block to refer to the current type.
+- Changed `parse_heading` from returning `Option<(u8, String)>` to returning `Option<Heading>`.
+- Learned that Rust does not allow direct string indexing like `rest[0]`.
+- Used `starts_with(' ')` to check whether a heading marker is followed by a space.
+- Learned why derived `Debug` printing does not count as reading struct fields in dead code analysis.
+
+### Notes
+
+- `struct` makes parsed data clearer than a tuple.
+- `Heading` owns its title by using `String`.
+- `line` and `character` are useful for future LSP features.
+- `#[derive(Debug)]` allows printing a struct with `{:?}`.
+- `#[derive(Clone)]` allows explicitly cloning a struct.
+- `impl Heading` is a good place to define a constructor such as `Heading::new`.
+- `Self` means the current type inside an `impl` block.
+- Rust strings are UTF-8, so they cannot be indexed directly by integer.
+- `println!("{:?}", heading)` is useful for debugging, but it does not prevent dead code warnings for unused fields.
+- To avoid the warning, read the fields directly, such as `heading.level`, `heading.title`, `heading.line`, and `heading.character`.
