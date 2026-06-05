@@ -61,10 +61,30 @@ Date: 2026-06-05
 - `&str` borrows string data.
 - Parser functions usually accept `&str`.
 - `text.lines()` can iterate over lines in a text document.
-- Raw string literals are useful for writing multi-line QMD examples.
+-rRaw string literals are useful for writing multi-line QMD examples.
 
 ### Notes
 
 - Use `print_lines(&qmd)` when `qmd` is a `String`.
 - Use `print_lines(qmd)` when `qmd` is already a string literal `&str`.
 - `lines()` does not include the trailing newline character.
+
+## Lesson 05: Parse Markdown headings
+
+Date: 2026-06-05
+
+### What I learned
+
+- Used `Option` to represent a value that may or may not exist.
+- Used `Some` and `None`.
+- Used `starts_with()` to check the beginning of a string.
+- Used `trim_start()` and `trim()` to remove whitespace.
+- Used `chars()`, `take_while()`, and `count()` to count heading markers.
+- Used `match` to handle `Option`.
+
+### Notes
+
+- `Option<T>` is useful when parsing may fail.
+- `Some(value)` means parsing succeeded.
+- `None` means parsing failed or the line is not a heading.
+- Markdown headings usually have levels from 1 to 6.
