@@ -45,30 +45,38 @@ fn parse_heading(line: &str, line_no: u32) -> Option<Heading> {
     Some(Heading::new(level as u8, title.to_string(), line_no, 0))
 }
 
-fn main() {
-    let lines = [
-        "# Title",
-        "## Background",
-        "### Methods",
-        "#### Results",
-        "##### Discussion",
-        "###### Conclusion",
-        "####### Too deep",
-        "Plain text",
-        "",
-        "####",
-        "# ",
-        "#Title",
-        "#\tTabbed title",
-    ];
-    for (line_no, line) in lines.iter().enumerate() {
-        match parse_heading(line, line_no as u32) {
-            Some(heading) => {
-                println!("{:?}", heading);
-            }
-            None => {
-                println!("Not a heading: {:?}", line);
-            }
+fn parse_headings(text: &str) -> Vec<Heading> {
+    let mut headings = Vec::new();
+
+    for (line_no, line) in text.lines().enumerate() {
+        if let Some(heading) = parse_heading(line, line_no as u32) {
+            headings.push(heading);
         }
+    }
+    headings
+}
+
+fn main() {
+    let qmd = r#"# Title
+
+This is plain text.
+
+## Background
+
+Some more text.
+
+### Methods
+
+#### Results
+
+####### Too deep
+
+#Invalid heading
+"#;
+
+    let headings = parse_headings(qmd);
+
+    for heading in headings {
+        println!("{:?}", heading);
     }
 }
