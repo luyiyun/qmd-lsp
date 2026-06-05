@@ -117,3 +117,34 @@ Date: 2026-06-05
 - Rust strings are UTF-8, so they cannot be indexed directly by integer.
 - `println!("{:?}", heading)` is useful for debugging, but it does not prevent dead code warnings for unused fields.
 - To avoid the warning, read the fields directly, such as `heading.level`, `heading.title`, `heading.line`, and `heading.character`.
+
+## Lesson 08: Classify label kinds with enum
+
+Date: 2026-06-05
+
+### What I learned
+
+- Used `enum` to represent different QMD label kinds.
+- Defined `LabelKind` variants such as `Figure`, `Table`, `Equation`, `Section`, `Listing`, `Theorem`, `Proof`, and `Unknown`.
+- Used `#[derive(Debug, Clone, PartialEq, Eq)]` to automatically implement useful traits.
+- Used `PartialEq` and `Eq` to compare enum values with `==`.
+- Used `impl LabelKind` to define functions related to the enum.
+- Used `Self::Figure`, `Self::Table`, and other variants inside an `impl` block.
+- Learned that `Self` means the current type, while `self` means the current value.
+- Used `match self` to return different values for different enum variants.
+- Learned that `&'static str` is a reference to string data that is valid for the whole program.
+- Added methods such as `as_str()`, `display_name()`, and `icon()` for label display.
+
+### Notes
+
+- `enum` is useful when a value can only be one of several known variants.
+- `LabelKind::Figure` represents the figure label kind.
+- `Self::Figure` is equivalent to `LabelKind::Figure` inside `impl LabelKind`.
+- `self` refers to the current enum value when calling a method.
+- `match` must cover all enum variants.
+- `PartialEq` allows comparing values such as `kind == LabelKind::Figure`.
+- `Eq` means equality comparison is complete and has no special exception.
+- `&'static str` is suitable for returning fixed string literals such as `"Figure"` or `"unknown"`.
+- `as_str()` can be used for machine-readable names such as `"figure"`.
+- `display_name()` can be used for user-facing names such as `"Figure"`.
+- `icon()` can return a fixed icon for each label kind.

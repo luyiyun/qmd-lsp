@@ -17,6 +17,70 @@ impl Heading {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+enum LabelKind {
+    Figure,
+    Table,
+    Equation,
+    Section,
+    Listing,
+    Theorem,
+    Proof,
+    Unknown,
+}
+
+impl LabelKind {
+    fn from_label(label: &str) -> Self {
+        if label.starts_with("fig-") {
+            Self::Figure
+        } else if label.starts_with("tbl-") {
+            Self::Table
+        } else if label.starts_with("eq-") {
+            Self::Equation
+        } else if label.starts_with("sec-") {
+            Self::Section
+        } else if label.starts_with("lst-") {
+            Self::Listing
+        } else if label.starts_with("thm-") {
+            Self::Theorem
+        } else if label.starts_with("prp-") || label.starts_with("proof-") {
+            Self::Proof
+        } else {
+            Self::Unknown
+        }
+    }
+
+    fn as_str(&self) -> &'static str {
+        match self {
+            Self::Figure => "Figure",
+            Self::Table => "Table",
+            Self::Equation => "Equation",
+            Self::Section => "Section",
+            Self::Listing => "Listing",
+            Self::Theorem => "Theorem",
+            Self::Proof => "Proof",
+            Self::Unknown => "Unknown",
+        }
+    }
+
+    fn display_name(&self) -> &'static str {
+        self.as_str()
+    }
+
+    fn icon(&self) -> &'static str {
+        match self {
+            Self::Figure => "🖼️",
+            Self::Table => "📊",
+            Self::Equation => "∑",
+            Self::Section => "§",
+            Self::Listing => "💻",
+            Self::Theorem => "📐",
+            Self::Proof => "✅",
+            Self::Unknown => "?",
+        }
+    }
+}
+
 fn parse_heading(line: &str, line_no: u32) -> Option<Heading> {
     let trimmed = line.trim_start();
     if !trimmed.starts_with('#') {
@@ -78,5 +142,31 @@ Some more text.
 
     for heading in headings {
         println!("{:?}", heading);
+    }
+
+    let labels = [
+        "fig-model",
+        "tbl-baseline",
+        "eq-loss",
+        "sec-methods",
+        "lst-code",
+        "thm-main",
+        "proof-main",
+        "something-else",
+    ];
+
+    println!();
+    println!("Labels:");
+
+    for label in labels {
+        let kind = LabelKind::from_label(label);
+
+        if kind == LabelKind::Figure {
+            println!("{label} is a figure label");
+        } else {
+            println!("{label} is {}", kind.as_str());
+        }
+
+        println!("{} {}: {}", kind.icon(), kind.display_name(), label);
     }
 }
