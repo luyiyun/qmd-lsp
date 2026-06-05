@@ -1,15 +1,29 @@
-fn is_qmd_file(path: &str) -> bool {
-    path.ends_with(".qmd")
+fn print_lines(text: &str) {
+    for line in text.lines() {
+        println!("{}", line);
+    }
 }
 
 fn main() {
-    let paths = ["notes/example.md", "notes/example.qmd", "notes/example.txt"];
+    let qmd = r#"
+---
+title: "My QMD Note"
+format: html
+---
 
-    for path in paths {
-        if is_qmd_file(path) {
-            println!("{path} is a QMD file.");
-        } else {
-            println!("{path} is not a QMD file.");
-        }
-    }
+# Introduction
+
+This is a Quarto document.
+
+## Methods
+
+```{r}
+summary(cars)
+```
+
+如 @fig-model 所示。
+"#;
+    print_lines(qmd);
+    // let qmd = String::from("# Title\n\n## Background\n\nSome text");
+    // print_lines(&qmd);
 }
