@@ -228,51 +228,31 @@ fn parse_all_refs(text: &str) -> Vec<RefUse> {
     refs
 }
 
-// ========== Ownership ==========
-fn takes_ownership(text: String) {
-    println!("{}", text)
+// ========== Lifetime ==========
+#[derive(Debug)]
+struct HeadingBorrowed<'a> {
+    title: &'a str,
 }
 
-fn borrow_ownership(text: &str) {
-    println!("{}", text)
+#[derive(Debug)]
+struct HeadingOwned {
+    title: String,
 }
 
-fn add_suffix(text: &mut String) {
-    text.push_str(" [parsed]");
-}
+// Error
+// fn make_heading<'a>() -> HeadingBorrowed<'a> {
+//     let title = String::from("Introduction");
+//     HeadingBorrowed { title: &title }
+// }
 
 fn main() {
-    let qmd = String::from("# Introduction");
-
-    borrow_ownership(&qmd);
-    println!("After borrow: {}", qmd);
-
-    takes_ownership(qmd);
-    // println!("After take: {}", qmd);
-
-    let mut text = String::from("Hello, world!");
-    add_suffix(&mut text);
-    println!("After add suffix: {}", text);
-
-    let a = &mut text;
-    // let b = &mut text;
-    // let b = &text;
-    // println!("a: {}", a);
-    // println!("b: {}", b);
-
-    println!(" ");
-    let title = String::from("Introduction");
-    let heading_title = title.clone();
-
-    println!("Title: {}", title);
-    println!("Heading Title: {}", heading_title);
-
-    let level = 1;
-    let heading_level = level;
-    println!("Level: {level}");
-    println!("Heading Level: {}", heading_level);
-
-    println!(" ");
+    let text = String::from("# Introduction");
+    let borrowed = HeadingBorrowed { title: &text };
+    let owned = HeadingOwned {
+        title: text.to_string(),
+    };
+    println!("{:?}", borrowed);
+    println!("{:?}", owned);
 
     let qmd = r#"
 # Introduction
