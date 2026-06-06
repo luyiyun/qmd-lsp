@@ -148,3 +148,38 @@ Date: 2026-06-05
 - `as_str()` can be used for machine-readable names such as `"figure"`.
 - `display_name()` can be used for user-facing names such as `"Figure"`.
 - `icon()` can return a fixed icon for each label kind.
+
+## Lesson 09: Parse QMD labels with regex
+
+Date: 2026-06-06
+
+### What I learned
+
+- Added the external `regex` crate to the Rust project.
+- Used `Regex::new()` to create a regular expression.
+- Learned that `Regex::new()` returns a `Result`, so it may be `Ok` or `Err`.
+- Used `unwrap()` to extract the `Regex` from `Ok`, while understanding that it will panic on `Err`.
+- Used `captures_iter()` to find all regex matches in a line.
+- Learned that each match result is represented by `Captures`.
+- Used `cap.get(0)` to get the whole matched text.
+- Used `cap.get(1)` to get the first captured group.
+- Used `Match::as_str()` to get the matched string slice.
+- Used `Match::start()` to get the starting position of a match.
+- Defined `LabelDef` to represent a QMD label definition.
+- Reused `LabelKind::from_label()` to classify labels by prefix.
+- Learned the basic idea of `match` and `match guard`.
+
+### Notes
+
+- `Regex` represents a compiled regular expression.
+- `captures_iter()` returns an iterator over all matches in the input text.
+- `Captures` stores one full match and its capture groups.
+- `Match` represents a specific matched text range.
+- `cap.get(0)` returns the whole match, such as `{#fig-overview}`.
+- `cap.get(1)` returns the first captured group, such as `fig-overview`.
+- `Some`, `None`, `Ok`, and `Err` are enum variants.
+- `Option<T>` represents a value that may or may not exist.
+- `Result<T, E>` represents an operation that may succeed or fail.
+- `match` is Rust's pattern matching syntax and is especially useful for enums.
+- `match guard` uses `if` after a pattern to add extra matching conditions.
+- Regex is suitable for small and regular patterns, but not for parsing the full QMD or Markdown structure.
