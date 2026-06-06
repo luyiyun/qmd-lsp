@@ -50,14 +50,18 @@ fn parse_heading(line: &str, line_no: u32) -> Option<Heading> {
 }
 
 fn parse_headings(text: &str) -> Vec<Heading> {
-    let mut headings = Vec::new();
+    // let mut headings = Vec::new();
+    // for (line_no, line) in text.lines().enumerate() {
+    //     if let Some(heading) = parse_heading(line, line_no as u32) {
+    //         headings.push(heading);
+    //     }
+    // }
+    // headings
 
-    for (line_no, line) in text.lines().enumerate() {
-        if let Some(heading) = parse_heading(line, line_no as u32) {
-            headings.push(heading);
-        }
-    }
-    headings
+    text.lines()
+        .enumerate()
+        .filter_map(|(line_no, line)| parse_heading(line, line_no as u32))
+        .collect()
 }
 
 // ========== Label ==========
@@ -228,31 +232,23 @@ fn parse_all_refs(text: &str) -> Vec<RefUse> {
     refs
 }
 
-// ========== Lifetime ==========
-#[derive(Debug)]
-struct HeadingBorrowed<'a> {
-    title: &'a str,
-}
-
-#[derive(Debug)]
-struct HeadingOwned {
-    title: String,
-}
-
-// Error
-// fn make_heading<'a>() -> HeadingBorrowed<'a> {
-//     let title = String::from("Introduction");
-//     HeadingBorrowed { title: &title }
-// }
-
 fn main() {
-    let text = String::from("# Introduction");
-    let borrowed = HeadingBorrowed { title: &text };
-    let owned = HeadingOwned {
-        title: text.to_string(),
-    };
-    println!("{:?}", borrowed);
-    println!("{:?}", owned);
+    // 函数式
+    let nums = vec![1, 2, 3, 4];
+    let doubled: Vec<i32> = nums.iter().map(|x| *x * 2).collect();
+    // let doubled: Vec<i32> = nums.iter().map(|&x| x * 2).collect();  //
+    // 不推荐这个写法，特别是对String
+    println!("{:?}", doubled);
+
+    let evens: Vec<&i32> = nums.iter().filter(|x| **x % 2 == 0).collect();
+    // let evens: Vec<&i32> = nums.iter().filter(|&&x| x % 2 == 0).collect();
+    println!("{:?}", evens);
+
+    let texts = vec!["Hello", "1", "abs", "3"];
+    let nums: Vec<i32> = texts.iter().filter_map(|s| s.parse::<i32>().ok()).collect();
+    println!("{:?}", nums);
+
+    return;
 
     let qmd = r#"
 # Introduction

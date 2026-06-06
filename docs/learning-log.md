@@ -227,3 +227,87 @@ Date: 2026-06-06
 - `parse_heading(line: &str, ...)` borrows the input line.
 - `Heading { title: String }` owns the parsed title.
 - Borrowing avoids unnecessary moves and unnecessary cloning.
+
+## Lesson 14: Learn iterators, closures, and reference patterns
+
+Date: 2026-06-06
+
+### What I learned
+
+- Used iterator chains to rewrite `parse_headings`.
+- Used `.lines()` to iterate over document lines.
+- Used `.enumerate()` to get both line number and line text.
+- Used `.filter_map()` to keep only successfully parsed headings.
+- Learned closure syntax such as `|x| ...` and `|(line_no, line)| ...`.
+- Learned that `map`, `filter`, and `filter_map` have different closure input and output types.
+- Learned the difference between `.iter()` and `.into_iter()`.
+- Learned how to handle references inside closure parameters, such as `|&x|` and `|&&x|`.
+
+### Notes
+
+- `map` transforms each item into another item.
+- `filter` uses a closure returning `bool` to decide whether to keep the original item.
+- `filter_map` combines filtering and mapping by using a closure that returns `Option<T>`.
+- If the iterator item is `T`, then:
+
+  - `map` receives `T` and returns a new item.
+  - `filter` receives `&T` and returns `bool`.
+  - `filter_map` receives `T` and returns `Option<U>`.
+- `.iter()` borrows elements and usually produces references such as `&T`.
+- `.into_iter()` consumes the collection and produces owned values such as `T`.
+- `|x| *x` means the reference is handled inside the closure body.
+- `|&x| x` means the reference is destructured in the closure parameter.
+- Parameter destructuring such as `|&x|` is suitable for `Copy` types like `i32`, `usize`, `bool`, `char`, and `&str`.
+- For non-`Copy` types such as `String`, avoid using `|&x|` to move values out of borrowed references.
+- Function parameters such as `fn parse(line: &str)` mean the function borrows a string slice.
+- Closure patterns such as `|&x|` mean the closure destructures a reference.
+- These two uses of `&` look similar but have different meanings.
+- Rust can automatically dereference values in method calls, such as calling `.parse()` on `&&str`.
+- Manual dereferencing and automatic dereferencing usually have no meaningful performance difference in these simple cases.
+- For learning, writing explicit dereferencing such as `*x` or `**x` helps make the real types clearer.
+
+### Code example
+
+```rust
+let nums = vec![1, 2, 3, 4];
+
+let doubled: Vec<i32> = nums
+    .iter()
+    .map(|&x| x * 2)
+    .collect();
+
+println!("{:?}", doubled);
+
+let evens: Vec<&i32> = nums
+    .iter()
+    .filter(|x| **x % 2 == 0)
+    .collect();
+
+println!("{:?}", evens);
+
+let texts = vec!["Hello", "1", "abs", "3"];
+
+let parsed_nums: Vec<i32> = texts
+    .iter()
+    .filter_map(|&s| s.parse::<i32>().ok())
+    .collect();
+
+println!("{:?}", parsed_nums);
+```
+
+### Project decision
+
+`parse_headings` can be written in iterator style:
+
+```rust
+pub fn parse_headings(text: &str) -> Vec<Heading> {
+    text.lines()
+        .enumerate()
+        .filter_map(|(line_no, line)| parse_heading(line, line_no as u32))
+        .collect()
+}
+```
+
+This is suitable because `parse_heading` returns `Option<Heading>`, so `filter_map` naturally keeps `Some(heading)` and skips `None`.
+
+For more complex stateful parsers, such as fenced code blocks or YAML front matter, a normal `for` loop may still be clearer.
