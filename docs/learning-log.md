@@ -205,3 +205,25 @@ Date: 2026-06-06
 - `.clone()` should not be used just to avoid ownership errors.
 - In `parse_heading`, converting the parsed title to `String` is reasonable because `Heading` owns its title.
 - In `parse_labels`, converting the captured label to `String` is reasonable because `LabelDef` owns its label.
+
+## Lesson 12: Learn references and borrowing
+
+Date: 2026-06-06
+
+### What I learned
+
+- A reference lets a function use a value without taking ownership.
+- `&T` is an immutable reference.
+- `&mut T` is a mutable reference.
+- Parser functions should usually borrow input text instead of owning it.
+- `&str` is more general than `&String`.
+- Multiple immutable references can exist at the same time.
+- Only one mutable reference can exist at a time.
+
+### Notes
+
+- Use `fn parse_xxx(text: &str) -> ...` for read-only parser functions.
+- Use owned `String` in parsed structs when the data needs to be stored.
+- `parse_heading(line: &str, ...)` borrows the input line.
+- `Heading { title: String }` owns the parsed title.
+- Borrowing avoids unnecessary moves and unnecessary cloning.

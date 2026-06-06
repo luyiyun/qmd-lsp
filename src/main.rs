@@ -228,7 +228,39 @@ fn parse_all_refs(text: &str) -> Vec<RefUse> {
     refs
 }
 
+// ========== Ownership ==========
+fn takes_ownership(text: String) {
+    println!("{}", text)
+}
+
+fn borrow_ownership(text: &str) {
+    println!("{}", text)
+}
+
+fn add_suffix(text: &mut String) {
+    text.push_str(" [parsed]");
+}
+
 fn main() {
+    let qmd = String::from("# Introduction");
+
+    borrow_ownership(&qmd);
+    println!("After borrow: {}", qmd);
+
+    takes_ownership(qmd);
+    // println!("After take: {}", qmd);
+
+    let mut text = String::from("Hello, world!");
+    add_suffix(&mut text);
+    println!("After add suffix: {}", text);
+
+    let a = &mut text;
+    // let b = &mut text;
+    // let b = &text;
+    // println!("a: {}", a);
+    // println!("b: {}", b);
+
+    println!(" ");
     let title = String::from("Introduction");
     let heading_title = title.clone();
 
