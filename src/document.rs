@@ -1,3 +1,5 @@
+use crate::parser::{parse_all_labels, parse_all_refs, parse_headings};
+
 // ========== Heading ==========
 
 #[derive(Debug, Clone, PartialEq)]
@@ -121,4 +123,61 @@ pub struct RefUse {
     pub kind: RefKind,
     pub line: u32,
     pub character: u32,
+}
+
+// ========== Document ==========
+
+#[derive(Debug, Clone)]
+pub struct QmdDocument {
+    pub text: String,
+    pub headings: Vec<Heading>,
+    pub labels: Vec<LabelDef>,
+    pub refs: Vec<RefUse>,
+}
+
+impl QmdDocument {
+    pub fn parse(text: &str) -> Self {
+        Self::from_string(text.to_string())
+    }
+
+    pub fn from_string(text: String) -> Self {
+        let headings = parse_headings(&text);
+        let labels = parse_all_labels(&text);
+        let refs = parse_all_refs(&text);
+
+        Self {
+            text,
+            headings,
+            labels,
+            refs,
+        }
+    }
+}
+
+// ========== test ==========
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parse_qmd_document() {
+        let text = r#"
+# Title
+
+## Methods
+
+![Model](model.png){#fig-model}
+"#;
+
+        let doc = QmdDocument::parse(text);
+
+        assert_eq!(doc.headings.len(), 2);
+        assert_eq!(doc.headings[0].title, "Title");
+        assert_eq!(doc.headings[1].title, "Methods");
+
+        assert_eq!(doc.labels.len(), 1);
+        assert_eq!(doc.labels[0].label, "fig-model");
+
+        assert_eq!(doc.text, text);
+    }
 }

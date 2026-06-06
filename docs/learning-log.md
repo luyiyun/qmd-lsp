@@ -370,3 +370,23 @@ cargo clippy
 cargo test
 cargo run
 ```
+
+## Lesson 16: Create QmdDocument abstraction
+
+Date: 2026-06-07
+
+### What I learned
+
+- Created a `QmdDocument` struct to represent a parsed QMD document.
+- Stored the original document text, headings, and labels together in one document model.
+- Implemented `QmdDocument::parse` as an associated function.
+- Changed `QmdDocument::parse` to accept `&str`, making it easier to call with string literals, `String`, or `&String`.
+- Learned that `QmdDocument` still needs to own its text, so `parse` converts `&str` into `String` internally.
+- Reviewed the difference between associated functions such as `QmdDocument::parse(...)` and methods such as `doc.parse()`.
+
+### Notes
+
+- `QmdDocument::parse(text)` creates a new parsed document from raw QMD text.
+- `Self { ... }` inside `impl QmdDocument` is equivalent to `QmdDocument { ... }`.
+- Accepting `&str` makes the API more flexible, while storing `text: String` keeps the parsed document self-contained.
+- Parser functions can borrow the input text, and the document model can keep its own owned copy for future LSP features.
