@@ -311,3 +311,62 @@ pub fn parse_headings(text: &str) -> Vec<Heading> {
 This is suitable because `parse_heading` returns `Option<Heading>`, so `filter_map` naturally keeps `Some(heading)` and skips `None`.
 
 For more complex stateful parsers, such as fenced code blocks or YAML front matter, a normal `for` loop may still be clearer.
+
+## Lesson 15: Split code into modules
+
+Date: 2026-06-06
+
+### What I learned
+
+- Split the project code from `main.rs` into separate Rust modules.
+- Created `document.rs` for data structures such as `Heading`, `LabelDef`, and `LabelKind`.
+- Created `parser.rs` for parser functions such as `parse_heading`, `parse_headings`, `parse_labels`, and `parse_all_labels`.
+- Used `mod` to declare modules in the crate root.
+- Used `pub` to expose structs, enums, fields, and functions across modules.
+- Used `use crate::...` to import items from another module.
+- Learned that `main.rs` is the crate root in a binary crate.
+- Learned why sibling modules should usually be accessed with absolute paths such as `crate::document::Heading`.
+- Learned the basic meaning of the `?` operator for `Option` and `Result`.
+
+### Notes
+
+- `mod parser;` declares the `parser` module and tells Rust to compile `src/parser.rs`.
+- `use parser::parse_headings;` only brings a name into scope; it does not declare a module.
+- Rust items are private by default.
+- A `pub struct` does not automatically make its fields public, so fields such as `level`, `title`, `line`, and `character` also need `pub` if other modules should access them.
+- `crate::document::Heading` means starting from the crate root and then finding the `document` module.
+- In `parser.rs`, `document` and `parser` are sibling modules, so using `crate::document::...` is clearer than trying to access `document` directly.
+- The `?` operator means: unwrap the value if it is `Some` or `Ok`; otherwise, return `None` or `Err` early from the current function or closure.
+- In `filter_map`, using `cap.get(1)?` is a concise way to skip invalid regex captures.
+
+### Code structure
+
+```text
+src/
+├── main.rs
+├── document.rs
+└── parser.rs
+```
+
+### Key distinction
+
+```rust
+mod parser;
+```
+
+declares the module.
+
+```rust
+use parser::parse_headings;
+```
+
+imports a function name into the current scope.
+
+### Checks
+
+```bash
+cargo fmt
+cargo clippy
+cargo test
+cargo run
+```
