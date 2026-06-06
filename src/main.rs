@@ -2,7 +2,7 @@ use regex::Regex;
 
 // ========== Heading ==========
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 struct Heading {
     level: u8,
     title: String,
@@ -290,5 +290,69 @@ $$ {#eq-model}
     println!("\nReferences {}:", refs.len());
     for r in refs {
         println!("{:?}", r);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parse_basic_headings() {
+        let heading = parse_heading("# Introduction", 0).unwrap();
+        assert_eq!(heading.level, 1);
+        assert_eq!(heading.title, "Introduction");
+        assert_eq!(heading.line, 0);
+        assert_eq!(heading.character, 0);
+    }
+
+    #[test]
+    fn parse_level_two_heading() {
+        let heading = parse_heading("## Background", 3).unwrap();
+        assert_eq!(heading.level, 2);
+        assert_eq!(heading.title, "Background");
+        assert_eq!(heading.line, 3);
+    }
+
+    #[test]
+    fn ignore_plain_text() {
+        let heading = parse_heading("This is not a heading", 0);
+        assert!(heading.is_none());
+    }
+
+    #[test]
+    fn ignore_heading_without_space() {
+        let heading = parse_heading("#Introduction", 0);
+
+        assert!(heading.is_none());
+        // assert_eq!(heading, None);   // 也可以这样写，需要加 derive(PartialEq)
+    }
+
+    #[test]
+    fn ignore_too_deep_heading() {
+        let heading = parse_heading("####### Too deep", 0);
+
+        assert!(heading.is_none());
+    }
+
+    #[test]
+    fn parse_basic_label() {
+        let labels = parse_labels("![caption](fig.png){#fig-overview}", 10);
+
+        assert_eq!(labels.len(), 1);
+        assert_eq!(labels[0].label, "fig-overview");
+        assert_eq!(labels[0].kind, LabelKind::Figure);
+        assert_eq!(labels[0].line, 10);
+    }
+
+    #[test]
+    fn parse_multiple_labels_in_one_line() {
+        let labels = parse_labels("{#fig-a} and {#tbl-b}", 5);
+
+        assert_eq!(labels.len(), 2);
+        assert_eq!(labels[0].label, "fig-a");
+        assert_eq!(labels[1].label, "tbl-b");
+        assert_eq!(labels[0].kind, LabelKind::Figure);
+        assert_eq!(labels[1].kind, LabelKind::Table);
     }
 }
