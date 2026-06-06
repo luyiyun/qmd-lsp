@@ -229,6 +229,19 @@ fn parse_all_refs(text: &str) -> Vec<RefUse> {
 }
 
 fn main() {
+    let title = String::from("Introduction");
+    let heading_title = title.clone();
+
+    println!("Title: {}", title);
+    println!("Heading Title: {}", heading_title);
+
+    let level = 1;
+    let heading_level = level;
+    println!("Level: {level}");
+    println!("Heading Level: {}", heading_level);
+
+    println!(" ");
+
     let qmd = r#"
 # Introduction
 

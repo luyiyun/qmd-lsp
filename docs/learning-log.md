@@ -183,3 +183,25 @@ Date: 2026-06-06
 - `match` is Rust's pattern matching syntax and is especially useful for enums.
 - `match guard` uses `if` after a pattern to add extra matching conditions.
 - Regex is suitable for small and regular patterns, but not for parsing the full QMD or Markdown structure.
+
+## Lesson 11: Learn ownership, move, and clone
+
+Date: 2026-06-06
+
+### What I learned
+
+- Rust values have clear ownership.
+- Assigning a `String` to another variable moves ownership.
+- After move, the original variable can no longer be used.
+- `clone()` creates a real copy of heap data.
+- Small types such as `u8`, `u32`, `bool`, and `char` are usually `Copy`.
+- Borrowing with `&str` allows a function to read text without taking ownership.
+
+### Notes
+
+- `String` is not `Copy` because it owns heap data.
+- Parser functions should usually accept `&str`.
+- `.to_string()` is appropriate when parsed data must be stored in a struct.
+- `.clone()` should not be used just to avoid ownership errors.
+- In `parse_heading`, converting the parsed title to `String` is reasonable because `Heading` owns its title.
+- In `parse_labels`, converting the captured label to `String` is reasonable because `LabelDef` owns its label.
