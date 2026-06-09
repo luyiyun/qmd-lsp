@@ -390,3 +390,22 @@ Date: 2026-06-07
 - `Self { ... }` inside `impl QmdDocument` is equivalent to `QmdDocument { ... }`.
 - Accepting `&str` makes the API more flexible, while storing `text: String` keeps the parsed document self-contained.
 - Parser functions can borrow the input text, and the document model can keep its own owned copy for future LSP features.
+
+## Lesson 17: Parse fenced code blocks
+
+Date: 2026-06-08
+
+### What I learned
+
+- Used a simple state machine to parse multi-line code blocks.
+- Used `Option<CodeBlock>` to represent whether the parser is currently inside a code block.
+- Added a `CodeBlock` struct with language, label, start line, and end line.
+- Added `code_blocks` to `QmdDocument`.
+- Used `Option::take()` to move a value out of an `Option` and reset it to `None`.
+
+### Notes
+
+- Heading and label parsing can usually be done line by line.
+- Code block parsing needs parser state because the start and end are on different lines.
+- `Option<String>` is suitable for fields that may not exist, such as code block language or label.
+- In this lesson, code block labels are not parsed yet. That will be handled in the next lesson.

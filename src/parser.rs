@@ -1,6 +1,6 @@
 use regex::Regex;
 
-use crate::document::{Heading, LabelDef, LabelKind, RefKind, RefUse};
+use crate::document::{CodeBlock, Heading, LabelDef, LabelKind, RefKind, RefUse};
 
 pub fn parse_heading(line: &str, line_no: u32) -> Option<Heading> {
     let trimmed = line.trim_start();
@@ -138,6 +138,61 @@ pub fn parse_all_refs(text: &str) -> Vec<RefUse> {
     // refs
 }
 
+fn parse_code_block_language(line: &str) -> Option<String> {
+    let trimmed = line.trim();
+
+    if !trimmed.starts_with("```") {
+        return None;
+    }
+
+    let rest = trimmed.trim_start_matches("```").trim();
+
+    if rest.is_empty() {
+        return None;
+    }
+
+    if rest.starts_with('{') && rest.ends_with('}') {
+        let inner = rest.trim_start_matches('{').trim_end_matches('}').trim();
+        if inner.is_empty() {
+            return None;
+        }
+
+        let language = inner.split_whitespace().next()?;
+        return Some(language.to_string());
+    }
+
+    Some(rest.to_string())
+}
+
+pub fn parse_code_blocks(text: &str) -> Vec<CodeBlock> {
+    let mut blocks = Vec::new();
+    let mut current_block: Option<CodeBlock> = None;
+
+    for (line_no, line) in text.lines().enumerate() {
+        let trimmed = line.trim_start();
+        if !trimmed.starts_with("```") {
+            continue;
+        }
+
+        let line_no = line_no as u32;
+
+        if let Some(mut block) = current_block.take() {
+            block.end_line = line_no;
+            blocks.push(block);
+        } else {
+            let language = parse_code_block_language(line);
+            current_block = Some(CodeBlock {
+                language,
+                label: None,
+                start_line: line_no,
+                end_line: line_no,
+            })
+        }
+    }
+
+    blocks
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -199,5 +254,37 @@ mod tests {
         assert_eq!(labels[1].label, "tbl-b");
         assert_eq!(labels[0].kind, LabelKind::Figure);
         assert_eq!(labels[1].kind, LabelKind::Table);
+    }
+
+    #[test]
+    fn parse_basic_code_block() {
+        let text = r#"# Title
+
+        ```{r}
+        summary(cars)
+        ```
+        some text
+        "#;
+        let blocks = parse_code_blocks(text);
+
+        assert_eq!(blocks.len(), 1);
+        assert_eq!(blocks[0].language, Some("r".to_string()));
+        assert_eq!(blocks[0].label, None);
+        assert_eq!(blocks[0].start_line, 2);
+        assert_eq!(blocks[0].end_line, 4);
+    }
+
+    #[test]
+    fn parse_code_block_without_language() {
+        let text = r#"```
+        plain text
+        ```"#;
+
+        let blocks = parse_code_blocks(text);
+
+        assert_eq!(blocks.len(), 1);
+        assert_eq!(blocks[0].language, None);
+        assert_eq!(blocks[0].start_line, 0);
+        assert_eq!(blocks[0].end_line, 2);
     }
 }

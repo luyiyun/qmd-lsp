@@ -1,4 +1,4 @@
-use crate::parser::{parse_all_labels, parse_all_refs, parse_headings};
+use crate::parser::{parse_all_labels, parse_all_refs, parse_code_blocks, parse_headings};
 
 // ========== Heading ==========
 
@@ -125,6 +125,16 @@ pub struct RefUse {
     pub character: u32,
 }
 
+// ========== Code Block ==========
+
+#[derive(Debug, Clone)]
+pub struct CodeBlock {
+    pub language: Option<String>,
+    pub label: Option<String>,
+    pub start_line: u32,
+    pub end_line: u32,
+}
+
 // ========== Document ==========
 
 #[derive(Debug, Clone)]
@@ -133,6 +143,7 @@ pub struct QmdDocument {
     pub headings: Vec<Heading>,
     pub labels: Vec<LabelDef>,
     pub refs: Vec<RefUse>,
+    pub code_blocks: Vec<CodeBlock>,
 }
 
 impl QmdDocument {
@@ -144,12 +155,14 @@ impl QmdDocument {
         let headings = parse_headings(&text);
         let labels = parse_all_labels(&text);
         let refs = parse_all_refs(&text);
+        let code_blocks = parse_code_blocks(&text);
 
         Self {
             text,
             headings,
             labels,
             refs,
+            code_blocks,
         }
     }
 }

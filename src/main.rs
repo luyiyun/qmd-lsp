@@ -32,6 +32,13 @@ $$ {#eq-model}
 详见 @tbl-baseline 和 @eq-model。
 
 普通邮箱 test@example.com 不应该被识别。
+
+```{r}
+summary(cars)
+
+print("hello")
+```
+
 "#;
 
     let doc = QmdDocument::parse(qmd);
@@ -60,4 +67,7 @@ $$ {#eq-model}
     for r in &doc.refs {
         println!("{:?}", r);
     }
+
+    println!("\nCode Blocks:");
+    println!("{:?}", doc.code_blocks);
 }
