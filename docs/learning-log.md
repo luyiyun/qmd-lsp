@@ -409,3 +409,24 @@ Date: 2026-06-08
 - Code block parsing needs parser state because the start and end are on different lines.
 - `Option<String>` is suitable for fields that may not exist, such as code block language or label.
 - In this lesson, code block labels are not parsed yet. That will be handled in the next lesson.
+
+## Lesson 18: Parse code chunk labels
+
+Date: 2026-06-09
+
+### What I learned
+
+- Parsed Quarto/R Markdown code chunk labels from fenced code block headers.
+- Supported labels written as `{r fig-model}`.
+- Supported Quarto chunk option labels written as `#| label: fig-model`.
+- Used regular expressions to capture label text.
+- Used `Option` chaining with `?` and `map`.
+- Added code chunk labels to the global label index.
+
+### Notes
+
+- Code chunk labels are also label definitions.
+- `CodeBlock.label` stores the label for the code block itself.
+- `QmdDocument.labels` stores all labels used by later cross-reference diagnostics, completion, and go-to-definition.
+- Header labels should not be overwritten by `#| label:` inside the same code block.
+- Current character positions are approximate byte offsets and will need UTF-16 handling later for LSP.

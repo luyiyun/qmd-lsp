@@ -82,20 +82,59 @@ pub fn parse_labels(line: &str, line_no: u32) -> Vec<LabelDef> {
     // labels
 }
 
+pub fn parse_code_block_labels(text: &str) -> Vec<LabelDef> {
+    let mut labels = Vec::new();
+    let mut inside_code_block = false;
+    let mut current_block_has_label = false;
+    for (line_no, line) in text.lines().enumerate() {
+        let line_no = line_no as u32;
+        let trimmed = line.trim_start();
+
+        if trimmed.starts_with("```") {
+            if inside_code_block {
+                inside_code_block = false;
+                current_block_has_label = false;
+            } else {
+                inside_code_block = true;
+                current_block_has_label = false;
+
+                if let Some(label) = parse_chunk_header_label(line) {
+                    labels.push(LabelDef {
+                        kind: LabelKind::from_label(&label),
+                        character: label_character(line, &label),
+                        line: line_no,
+                        label,
+                    });
+                    current_block_has_label = true;
+                }
+            }
+            continue;
+        }
+
+        if inside_code_block
+            && !current_block_has_label
+            && let Some(label) = parse_chunk_option_label(line)
+        {
+            labels.push(LabelDef {
+                kind: LabelKind::from_label(&label),
+                character: label_character(line, &label),
+                line: line_no,
+                label,
+            });
+
+            current_block_has_label = true;
+        }
+    }
+    labels
+}
+
 pub fn parse_all_labels(text: &str) -> Vec<LabelDef> {
-    text.lines()
-        .enumerate()
-        .flat_map(|(line_no, line)| parse_labels(line, line_no as u32))
-        .collect()
-    // let mut labels = Vec::new();
-    // for (line_no, line) in text.lines().enumerate() {
-    //     let line_labels = parse_labels(line, line_no as u32);
-    //
-    //     for label in line_labels {
-    //         labels.push(label);
-    //     }
-    // }
-    // labels
+    let mut labels = Vec::new();
+    for (line_no, line) in text.lines().enumerate() {
+        labels.extend(parse_labels(line, line_no as u32));
+    }
+    labels.extend(parse_code_block_labels(text));
+    labels
 }
 
 pub fn parse_refs(line: &str, line_no: u32) -> Vec<RefUse> {
@@ -139,29 +178,41 @@ pub fn parse_all_refs(text: &str) -> Vec<RefUse> {
 }
 
 fn parse_code_block_language(line: &str) -> Option<String> {
-    let trimmed = line.trim();
+    let trimmed = line.trim_start();
+    let header = trimmed.strip_prefix("```")?.trim();
 
-    if !trimmed.starts_with("```") {
+    if header.is_empty() {
         return None;
     }
 
-    let rest = trimmed.trim_start_matches("```").trim();
-
-    if rest.is_empty() {
-        return None;
+    if header.starts_with('{') && header.ends_with('}') {
+        let inner = header.trim_start_matches('{').trim_end_matches('}').trim();
+        return inner.split_whitespace().next().map(|s| s.to_string());
     }
 
-    if rest.starts_with('{') && rest.ends_with('}') {
-        let inner = rest.trim_start_matches('{').trim_end_matches('}').trim();
-        if inner.is_empty() {
-            return None;
-        }
+    Some(header.to_string())
+}
 
-        let language = inner.split_whitespace().next()?;
-        return Some(language.to_string());
-    }
+fn parse_chunk_header_label(line: &str) -> Option<String> {
+    let trimmed = line.trim_start();
+    let re = Regex::new(r"^```\{[A-Za-z0-9_\-]+\s+([A-Za-z0-9_\-]+)\s*\}$").unwrap();
+    let cap = re.captures(trimmed)?;
 
-    Some(rest.to_string())
+    cap.get(1).map(|m| m.as_str().to_string())
+}
+
+fn parse_chunk_option_label(line: &str) -> Option<String> {
+    let trimmed = line.trim_start();
+
+    let re = Regex::new(r#"^\#\|\s*label\s*:\s*["']?([A-Za-z0-9_\-]+)["']?\s*$"#).unwrap();
+    // #| label: fig-model
+    let cap = re.captures(trimmed)?;
+
+    cap.get(1).map(|m| m.as_str().to_string())
+}
+
+fn label_character(line: &str, label: &str) -> u32 {
+    line.find(label).unwrap_or(0) as u32
 }
 
 pub fn parse_code_blocks(text: &str) -> Vec<CodeBlock> {
@@ -169,24 +220,29 @@ pub fn parse_code_blocks(text: &str) -> Vec<CodeBlock> {
     let mut current_block: Option<CodeBlock> = None;
 
     for (line_no, line) in text.lines().enumerate() {
+        let line_no = line_no as u32;
         let trimmed = line.trim_start();
-        if !trimmed.starts_with("```") {
+
+        if trimmed.starts_with("```") {
+            if let Some(mut block) = current_block.take() {
+                block.end_line = line_no;
+                blocks.push(block);
+            } else {
+                current_block = Some(CodeBlock {
+                    language: parse_code_block_language(line),
+                    label: parse_chunk_header_label(line),
+                    start_line: line_no,
+                    end_line: line_no,
+                })
+            }
+
             continue;
         }
 
-        let line_no = line_no as u32;
-
-        if let Some(mut block) = current_block.take() {
-            block.end_line = line_no;
-            blocks.push(block);
-        } else {
-            let language = parse_code_block_language(line);
-            current_block = Some(CodeBlock {
-                language,
-                label: None,
-                start_line: line_no,
-                end_line: line_no,
-            })
+        if let Some(block) = current_block.as_mut()
+            && block.label.is_none()
+        {
+            block.label = parse_chunk_option_label(line);
         }
     }
 
@@ -286,5 +342,46 @@ mod tests {
         assert_eq!(blocks[0].language, None);
         assert_eq!(blocks[0].start_line, 0);
         assert_eq!(blocks[0].end_line, 2);
+    }
+
+    #[test]
+    fn parse_code_block_label_from_header() {
+        let text = r#"```{r fig-model}
+plot(cars)
+```"#;
+
+        let blocks = parse_code_blocks(text);
+
+        assert_eq!(blocks.len(), 1);
+        assert_eq!(blocks[0].language.as_deref(), Some("r"));
+        assert_eq!(blocks[0].label.as_deref(), Some("fig-model"));
+    }
+
+    #[test]
+    fn parse_code_block_label_from_chunk_option() {
+        let text = r#"```{r}
+#| label: fig-model
+plot(cars)
+```"#;
+
+        let blocks = parse_code_blocks(text);
+
+        assert_eq!(blocks.len(), 1);
+        assert_eq!(blocks[0].language.as_deref(), Some("r"));
+        assert_eq!(blocks[0].label.as_deref(), Some("fig-model"));
+    }
+
+    #[test]
+    fn code_block_label_is_added_to_label_index() {
+        let text = r#"```{r}
+#| label: fig-model
+plot(cars)
+```"#;
+
+        let labels = parse_all_labels(text);
+
+        assert_eq!(labels.len(), 1);
+        assert_eq!(labels[0].label, "fig-model");
+        assert_eq!(labels[0].kind, LabelKind::Figure);
     }
 }
