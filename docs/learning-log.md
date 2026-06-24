@@ -430,3 +430,23 @@ Date: 2026-06-09
 - `QmdDocument.labels` stores all labels used by later cross-reference diagnostics, completion, and go-to-definition.
 - Header labels should not be overwritten by `#| label:` inside the same code block.
 - Current character positions are approximate byte offsets and will need UTF-16 handling later for LSP.
+
+## Lesson 20: Move heading parsing into Heading methods
+
+Date: 2026-06-24
+
+### What I learned
+
+- Refactored `Heading` from a simple data holder into a QMD object.
+- Replaced separate `line` and `character` fields with `SourceRange`.
+- Moved heading parsing logic into `Heading::parse`.
+- Added `Heading::display_name` as a method.
+- Reviewed the difference between associated functions and methods.
+
+### Notes
+
+- `Heading::parse(...)` is an associated function because no `Heading` value exists before parsing.
+- `heading.display_name()` is a method because it uses `&self`.
+- `Self` inside `impl Heading` refers to `Heading`.
+- `SourceRange` is an internal range type, not an LSP range.
+- Parser functions can delegate local parsing logic to domain objects.

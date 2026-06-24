@@ -1,23 +1,75 @@
-use crate::parser::{parse_all_labels, parse_all_refs, parse_code_blocks, parse_headings};
+use crate::{
+    // parser::{parse_all_labels, parse_all_refs, parse_code_blocks, parse_headings},
+    range::SourceRange,
+};
 
 // ========== Heading ==========
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Heading {
     pub level: u8,
     pub title: String,
-    pub line: u32,
-    pub character: u32,
+    pub range: SourceRange,
 }
 
 impl Heading {
-    pub fn new(level: u8, title: String, line: u32, character: u32) -> Self {
-        Self {
-            level,
-            title,
-            line,
-            character,
+    // pub fn new(level: u8, title: String, line: u32, character: u32) -> Self {
+    //     Self {
+    //         level,
+    //         title,
+    //         line,
+    //         character,
+    //     }
+    // }
+    pub fn parse_line(line: &str, line_no: u32) -> Option<Self> {
+        let trimmed = line.trim_start();
+        if !trimmed.starts_with('#') {
+            return None;
         }
+
+        let level = trimmed.chars().take_while(|c| *c == '#').count();
+        if level == 0 || level > 6 {
+            return None;
+        }
+
+        let rest = &trimmed[level..];
+
+        if !rest.starts_with(' ') {
+            return None;
+        }
+        // if !rest.chars().next().is_some_and(|c| c.is_whitespace()) {
+        //     return None;
+        // }
+
+        let title = rest.trim().to_string();
+
+        if title.is_empty() {
+            return None;
+        }
+
+        let start_character = line.chars().take_while(|c| c.is_whitespace()).count() as u32;
+        let end_character = line.chars().count() as u32;
+        Some(Self {
+            level: level as u8,
+            title,
+            range: SourceRange::new(line_no, start_character, line_no, end_character),
+        })
+    }
+
+    pub fn parse(text: &str) -> Option<Vec<Self>> {
+        let headings: Vec<Self> = text
+            .lines()
+            .enumerate()
+            .filter_map(|(line_no, line)| Self::parse_line(line, line_no as u32))
+            .collect();
+        if headings.is_empty() {
+            return None;
+        }
+        Some(headings)
+    }
+
+    pub fn display_name(&self) -> String {
+        format!("{} {}", "#".repeat(self.level as usize), self.title)
     }
 }
 
@@ -137,35 +189,35 @@ pub struct CodeBlock {
 
 // ========== Document ==========
 
-#[derive(Debug, Clone)]
-pub struct QmdDocument {
-    pub text: String,
-    pub headings: Vec<Heading>,
-    pub labels: Vec<LabelDef>,
-    pub refs: Vec<RefUse>,
-    pub code_blocks: Vec<CodeBlock>,
-}
-
-impl QmdDocument {
-    pub fn parse(text: &str) -> Self {
-        Self::from_string(text.to_string())
-    }
-
-    pub fn from_string(text: String) -> Self {
-        let headings = parse_headings(&text);
-        let labels = parse_all_labels(&text);
-        let refs = parse_all_refs(&text);
-        let code_blocks = parse_code_blocks(&text);
-
-        Self {
-            text,
-            headings,
-            labels,
-            refs,
-            code_blocks,
-        }
-    }
-}
+// #[derive(Debug, Clone)]
+// pub struct QmdDocument {
+//     pub text: String,
+//     pub headings: Vec<Heading>,
+//     pub labels: Vec<LabelDef>,
+//     pub refs: Vec<RefUse>,
+//     pub code_blocks: Vec<CodeBlock>,
+// }
+//
+// impl QmdDocument {
+//     pub fn parse(text: &str) -> Self {
+//         Self::from_string(text.to_string())
+//     }
+//
+//     pub fn from_string(text: String) -> Self {
+//         let headings = parse_headings(&text);
+//         let labels = parse_all_labels(&text);
+//         let refs = parse_all_refs(&text);
+//         let code_blocks = parse_code_blocks(&text);
+//
+//         Self {
+//             text,
+//             headings,
+//             labels,
+//             refs,
+//             code_blocks,
+//         }
+//     }
+// }
 
 // ========== test ==========
 #[cfg(test)]
@@ -173,24 +225,88 @@ mod tests {
     use super::*;
 
     #[test]
-    fn parse_qmd_document() {
-        let text = r#"
-# Title
+    fn parse_basic_heading() {
+        let heading = Heading::parse_line("# Introduction", 0).unwrap();
 
-## Methods
-
-![Model](model.png){#fig-model}
-"#;
-
-        let doc = QmdDocument::parse(text);
-
-        assert_eq!(doc.headings.len(), 2);
-        assert_eq!(doc.headings[0].title, "Title");
-        assert_eq!(doc.headings[1].title, "Methods");
-
-        assert_eq!(doc.labels.len(), 1);
-        assert_eq!(doc.labels[0].label, "fig-model");
-
-        assert_eq!(doc.text, text);
+        assert_eq!(heading.level, 1);
+        assert_eq!(heading.title, "Introduction");
+        assert_eq!(heading.range.start.line, 0);
+        assert_eq!(heading.range.start.character, 0);
+        assert_eq!(heading.display_name(), "# Introduction");
     }
+
+    #[test]
+    fn parse_indented_heading() {
+        let heading = Heading::parse_line("  ## Background", 3).unwrap();
+
+        assert_eq!(heading.level, 2);
+        assert_eq!(heading.title, "Background");
+        assert_eq!(heading.range.start.line, 3);
+        assert_eq!(heading.range.start.character, 2);
+        assert_eq!(heading.display_name(), "## Background");
+    }
+
+    #[test]
+    fn ignore_plain_text() {
+        let heading = Heading::parse_line("This is not a heading", 0);
+
+        assert!(heading.is_none());
+    }
+
+    #[test]
+    fn ignore_heading_without_space() {
+        let heading = Heading::parse_line("#Invalid", 0);
+
+        assert!(heading.is_none());
+    }
+
+    #[test]
+    fn ignore_too_deep_heading() {
+        let heading = Heading::parse_line("####### Too deep", 0);
+
+        assert!(heading.is_none());
+    }
+
+    #[test]
+    fn parse_multiple_headings() {
+        let text = r#"
+        # Title
+        ## Methods
+        "#;
+        let headings = Heading::parse(text).unwrap();
+        assert_eq!(headings.len(), 2);
+        assert_eq!(headings[0].title, "Title");
+        assert_eq!(headings[1].title, "Methods");
+    }
+
+    #[test]
+    fn parse_zero_headings() {
+        let text = r#"
+        sfsfsf
+        "#;
+        let headings = Heading::parse(text);
+        assert!(headings.is_none());
+    }
+
+    //     #[test]
+    //     fn parse_qmd_document() {
+    //         let text = r#"
+    // # Title
+    //
+    // ## Methods
+    //
+    // ![Model](model.png){#fig-model}
+    // "#;
+    //
+    //         let doc = QmdDocument::parse(text);
+    //
+    //         assert_eq!(doc.headings.len(), 2);
+    //         assert_eq!(doc.headings[0].title, "Title");
+    //         assert_eq!(doc.headings[1].title, "Methods");
+    //
+    //         assert_eq!(doc.labels.len(), 1);
+    //         assert_eq!(doc.labels[0].label, "fig-model");
+    //
+    //         assert_eq!(doc.text, text);
+    //     }
 }
