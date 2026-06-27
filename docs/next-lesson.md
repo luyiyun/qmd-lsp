@@ -2,11 +2,11 @@
 
 ## Goal
 
-After the `QmdNode` trait has been implemented for `Heading`, add the next
-smallest block-level AST node: `Paragraph`.
+After `Paragraph` has been implemented, add the smallest possible block AST enum
+that can hold either a `Heading` or a `Paragraph`.
 
-Start by confirming that Lesson 22's `QmdNode` changes are present and that
-tests pass. If they are not present yet, finish Lesson 22 first.
+Start by confirming that Lesson 23's `Paragraph` changes are present and that
+tests pass. If they are not present yet, finish Lesson 23 first.
 
 ## Files To Read
 
@@ -16,16 +16,17 @@ tests pass. If they are not present yet, finish Lesson 22 first.
 
 ## Rust Concepts
 
-- Reusing a trait across more than one concrete type.
-- Designing a small struct with owned text.
-- Choosing a source range for a multi-line or single-line text node.
-- Avoiding premature parser rewrites while growing the AST model.
+- `enum` variants that hold data.
+- Pattern matching with `match`.
+- Delegating trait methods from an enum to its inner values.
+- Keeping an AST enum small before adding parser behavior.
 
 ## Minimal Implementation Task
 
-- Add a `Paragraph` struct with text and `SourceRange`.
-- Implement `QmdNode` for `Paragraph`.
-- Add tests for `Paragraph::display_name`, `kind`, and `range`.
+- Add an enum such as `BlockNode` with variants for `Heading` and `Paragraph`.
+- Implement `QmdNode` for `BlockNode` by matching on each variant.
+- Add tests showing that `BlockNode::Heading` and `BlockNode::Paragraph`
+  delegate `kind`, `range`, and `display_name` correctly.
 
 Do not:
 
@@ -46,5 +47,5 @@ cargo test
 ## Suggested Commit Message
 
 ```text
-feat: add paragraph node to qmd ast model
+feat: add block node enum for heading and paragraph
 ```

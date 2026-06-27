@@ -74,6 +74,35 @@ impl QmdNode for Heading {
     }
 }
 
+// ========== Paragraph ==========
+pub struct Paragraph {
+    pub text: String,
+    pub range: SourceRange,
+}
+
+impl Paragraph {
+    pub fn new(text: &str, range: SourceRange) -> Self {
+        Self {
+            text: text.to_string(),
+            range,
+        }
+    }
+}
+
+impl QmdNode for Paragraph {
+    fn kind(&self) -> QmdElementKind {
+        QmdElementKind::Paragraph
+    }
+
+    fn range(&self) -> SourceRange {
+        self.range
+    }
+
+    fn display_name(&self) -> String {
+        self.text.clone()
+    }
+}
+
 // ========== Label ==========
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -318,5 +347,14 @@ mod tests {
         assert_eq!(heading.kind(), QmdElementKind::Heading);
         assert_eq!(heading.range(), SourceRange::new(7, 0, 7, 10));
         assert_eq!(heading.display_name(), "## Methods");
+    }
+
+    #[test]
+    fn create_paragraph_node() {
+        let paragraph = Paragraph::new("This is a paragraph.", SourceRange::new(10, 0, 10, 15));
+        assert_eq!(paragraph.kind(), QmdElementKind::Paragraph);
+        assert_eq!(paragraph.range(), SourceRange::new(10, 0, 10, 15));
+        assert_eq!(paragraph.display_name(), "This is a paragraph.");
+        assert_eq!(paragraph.text, "This is a paragraph.");
     }
 }

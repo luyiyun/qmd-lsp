@@ -541,3 +541,41 @@ unused/dead-code warnings from inactive parser/document pieces.
 ```text
 feat: add minimal qmd node trait for headings
 ```
+
+## Lesson 23: Add a Paragraph node to the AST model
+
+Date: 2026-06-27
+
+### What I learned
+
+- A second `QmdNode` implementation makes the trait more useful than a
+  one-type interface.
+- `Paragraph` should own its text with `String` because AST nodes need to live
+  independently of the original input slice.
+- `SourceRange` can continue to be returned by value because it is `Copy`.
+- A constructor such as `Paragraph::new(text, range)` keeps test setup simple
+  and makes future parser code easier to read.
+
+### Code change to implement manually
+
+- Add a `Paragraph` struct in `src/document.rs`.
+- Add a small `Paragraph::new` constructor.
+- Implement `QmdNode` for `Paragraph`.
+- Add tests for `Paragraph` kind, range, text, and display name.
+
+### Baseline checks before manual implementation
+
+```bash
+cargo fmt --check
+cargo clippy
+cargo test
+```
+
+Result: checks pass. `cargo test` reports 10 passing tests. Existing
+unused/dead-code warnings remain expected while the AST model is still growing.
+
+### Suggested commit message
+
+```text
+feat: add paragraph node to qmd ast model
+```
