@@ -450,3 +450,55 @@ Date: 2026-06-24
 - `Self` inside `impl Heading` refers to `Heading`.
 - `SourceRange` is an internal range type, not an LSP range.
 - Parser functions can delegate local parsing logic to domain objects.
+
+## Lesson 21: Align project direction and learning system
+
+Date: 2026-06-27
+
+### What I learned
+
+- Clarified that this project should move toward an AST-first parser.
+- Separated the long-term architecture direction from the short-term learning
+  workflow.
+- Added `agent.md` as the project continuation guide for future conversations.
+- Added a dynamic learning plan instead of a fixed course schedule.
+- Added a next-lesson file so future work can start from the current code state.
+
+### Current code status
+
+- The project currently compiles and tests pass.
+- Existing tests cover `SourcePosition`, `SourceRange`, and basic `Heading`
+  parsing behavior.
+- The current code still has unused/dead-code warnings because some earlier
+  parser and document pieces are temporarily inactive during the AST redesign.
+- Those warnings are acceptable for now and should be reduced gradually as the
+  AST and parser shape becomes clearer.
+
+### Project direction
+
+- Parser should consume `.qmd` text from beginning to end.
+- Block-level AST and inline-level AST should stay separate.
+- Ordinary text should become `Paragraph`.
+- Unrecognized but meaningful input should become `Unknown` or `Malformed`
+  instead of being dropped.
+- `QmdIndex` should be derived from the AST.
+- LSP-specific types should be added later through a conversion layer.
+
+### Next lesson suggestion
+
+Introduce a minimal `QmdNode` trait and implement it for `Heading` only. This
+keeps the next step focused on one Rust concept: traits as shared behavior.
+
+### Checks
+
+```bash
+cargo fmt --check
+cargo clippy
+cargo test
+```
+
+### Suggested commit message
+
+```text
+docs: initialize learning and agent guidance
+```

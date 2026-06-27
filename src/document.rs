@@ -13,14 +13,6 @@ pub struct Heading {
 }
 
 impl Heading {
-    // pub fn new(level: u8, title: String, line: u32, character: u32) -> Self {
-    //     Self {
-    //         level,
-    //         title,
-    //         line,
-    //         character,
-    //     }
-    // }
     pub fn parse_line(line: &str, line_no: u32) -> Option<Self> {
         let trimmed = line.trim_start();
         if !trimmed.starts_with('#') {
@@ -56,7 +48,7 @@ impl Heading {
         })
     }
 
-    pub fn parse(text: &str) -> Option<Vec<Self>> {
+    pub fn parse_text(text: &str) -> Option<Vec<Self>> {
         let headings: Vec<Self> = text
             .lines()
             .enumerate()
@@ -273,7 +265,7 @@ mod tests {
         # Title
         ## Methods
         "#;
-        let headings = Heading::parse(text).unwrap();
+        let headings = Heading::parse_text(text).unwrap();
         assert_eq!(headings.len(), 2);
         assert_eq!(headings[0].title, "Title");
         assert_eq!(headings[1].title, "Methods");
@@ -284,7 +276,7 @@ mod tests {
         let text = r#"
         sfsfsf
         "#;
-        let headings = Heading::parse(text);
+        let headings = Heading::parse_text(text);
         assert!(headings.is_none());
     }
 
