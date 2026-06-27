@@ -75,6 +75,7 @@ impl QmdNode for Heading {
 }
 
 // ========== Paragraph ==========
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Paragraph {
     pub text: String,
     pub range: SourceRange,
@@ -100,6 +101,37 @@ impl QmdNode for Paragraph {
 
     fn display_name(&self) -> String {
         self.text.clone()
+    }
+}
+
+// ========== Block Node ==========
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum BlockNode {
+    Heading(Heading),
+    Paragraph(Paragraph),
+}
+
+impl QmdNode for BlockNode {
+    fn kind(&self) -> QmdElementKind {
+        match self {
+            Self::Heading(heading) => heading.kind(),
+            Self::Paragraph(paragraph) => paragraph.kind(),
+        }
+    }
+
+    fn range(&self) -> SourceRange {
+        match self {
+            Self::Heading(heading) => heading.range(),
+            Self::Paragraph(paragraph) => paragraph.range(),
+        }
+    }
+
+    fn display_name(&self) -> String {
+        match self {
+            Self::Heading(heading) => heading.display_name(),
+            Self::Paragraph(paragraph) => paragraph.display_name(),
+        }
     }
 }
 
@@ -356,5 +388,26 @@ mod tests {
         assert_eq!(paragraph.range(), SourceRange::new(10, 0, 10, 15));
         assert_eq!(paragraph.display_name(), "This is a paragraph.");
         assert_eq!(paragraph.text, "This is a paragraph.");
+    }
+
+    #[test]
+    fn block_node_heading_delegates_qmd_node_behavior() {
+        let heading = Heading::parse_line("### Results", 4).unwrap();
+        let block = BlockNode::Heading(heading);
+
+        assert_eq!(block.kind(), QmdElementKind::Heading);
+        assert_eq!(block.range(), SourceRange::new(4, 0, 4, 11));
+        assert_eq!(block.display_name(), "### Results");
+    }
+
+    #[test]
+    fn block_node_paragraph_delegates_qmd_node_behavior() {
+        let range = SourceRange::new(6, 0, 6, 11);
+        let paragraph = Paragraph::new("Plain text.", range);
+        let block = BlockNode::Paragraph(paragraph);
+
+        assert_eq!(block.kind(), QmdElementKind::Paragraph);
+        assert_eq!(block.range(), range);
+        assert_eq!(block.display_name(), "Plain text.");
     }
 }

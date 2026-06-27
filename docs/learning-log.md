@@ -579,3 +579,42 @@ unused/dead-code warnings remain expected while the AST model is still growing.
 ```text
 feat: add paragraph node to qmd ast model
 ```
+
+## Lesson 24: Add a minimal BlockNode enum
+
+Date: 2026-06-27
+
+### What I learned
+
+- An `enum` can have variants that carry data, such as
+  `BlockNode::Heading(Heading)`.
+- This lets one vector or function return hold several concrete node types
+  without using advanced generics or trait objects.
+- `match` is the natural way to ask which enum variant a value currently is.
+- An enum can implement a trait by delegating each trait method to the value
+  inside the matching variant.
+- This is a small AST modeling step only; parser behavior should stay unchanged
+  until the enum shape is clear.
+
+### Code change to implement manually
+
+- Add a `BlockNode` enum in `src/document.rs`.
+- Give it `Heading(Heading)` and `Paragraph(Paragraph)` variants.
+- Implement `QmdNode` for `BlockNode`.
+- Add tests proving that both variants delegate `kind`, `range`, and
+  `display_name` to the inner node.
+
+### Baseline checks before manual implementation
+
+```bash
+cargo test
+```
+
+Result: checks pass. `cargo test` reports 11 passing tests. Existing
+unused/dead-code warnings remain expected while the AST model is still growing.
+
+### Suggested commit message
+
+```text
+feat: add block node enum for heading and paragraph
+```
