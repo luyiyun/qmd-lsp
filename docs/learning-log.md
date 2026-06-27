@@ -618,3 +618,50 @@ unused/dead-code warnings remain expected while the AST model is still growing.
 ```text
 feat: add block node enum for heading and paragraph
 ```
+
+## Lesson 25: Parse heading and paragraph blocks
+
+Date: 2026-06-27
+
+### What I learned
+
+- A parser-facing function can return `Vec<BlockNode>` so one ordered list can
+  contain both headings and paragraphs.
+- `filter_map` is useful when a parser may skip some input, such as blank
+  lines.
+- A small helper such as `parse_block_line` keeps line-level parsing separate
+  from document-level iteration.
+- Parser order matters: try `Heading::parse_line` first, then fall back to a
+  `Paragraph` for ordinary non-empty lines.
+- `match` on `BlockNode` lets tests check the concrete data inside each enum
+  variant.
+
+### Code change to implement manually
+
+- Replace the unused imports at the top of `src/parser.rs`.
+- Add `parse_blocks(text: &str) -> Vec<BlockNode>`.
+- Add a private `parse_block_line(line, line_no)` helper.
+- Add parser tests for:
+  - heading plus paragraph output
+  - blank line skipping
+
+### Temporary verification
+
+The proposed code was tested in a temporary copy of the project, not applied to
+the Rust source files directly.
+
+```bash
+cargo fmt --check
+cargo test
+cargo clippy
+```
+
+Result: checks pass in the temporary copy. `cargo test` reports 15 passing
+tests after the proposed parser tests are added. Existing unused/dead-code
+warnings remain expected while the AST and parser are still being connected.
+
+### Suggested commit message
+
+```text
+feat: parse heading and paragraph block nodes
+```

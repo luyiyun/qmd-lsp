@@ -2,48 +2,57 @@
 
 ## Goal
 
-If `BlockNode` has not been implemented manually yet, finish Lesson 24 first:
-add the smallest possible block AST enum that can hold either a `Heading` or a
-`Paragraph`.
+If `parse_blocks` has not been implemented manually yet, finish Lesson 25
+first: add the smallest parser function that turns headings and ordinary
+non-empty lines into a `Vec<BlockNode>`.
 
-If `BlockNode` is already present and tests pass, the next small lesson should
-connect that enum to parser behavior by returning a `Vec<BlockNode>` for a very
-small input that contains only headings and paragraphs.
+If `parse_blocks` is already present and tests pass, the next small lesson
+should connect the block AST to a minimal document model by adding a
+`QmdDocument` that owns the source text and the parsed `Vec<BlockNode>`.
 
 ## Files To Read
 
-- `src/element.rs`
-- `src/document.rs`
-- `src/range.rs`
 - `src/parser.rs`
+- `src/document.rs`
+- `src/element.rs`
+- `src/range.rs`
 
 ## Rust Concepts
 
-- `enum` variants that hold data.
-- Pattern matching with `match`.
-- Delegating trait methods from an enum to its inner values.
-- Keeping an AST enum small before adding parser behavior.
-- Returning a vector of enum values such as `Vec<BlockNode>`.
+- Returning `Vec<BlockNode>` from a parser function.
+- Using `filter_map` when a parser can skip blank lines.
+- Keeping public parser functions and private helper functions separate.
+- Pattern matching in tests to inspect enum variant data.
+- Letting a document struct own parsed blocks after the parser produces them.
 
 ## Minimal Implementation Task
 
-If `BlockNode` is missing:
+If `parse_blocks` is missing:
 
-- Add an enum such as `BlockNode` with variants for `Heading` and `Paragraph`.
-- Implement `QmdNode` for `BlockNode` by matching on each variant.
-- Add tests showing that `BlockNode::Heading` and `BlockNode::Paragraph`
-  delegate `kind`, `range`, and `display_name` correctly.
+- Replace the unused imports at the top of `src/parser.rs`.
+- Add `parse_blocks(text: &str) -> Vec<BlockNode>`.
+- Add a private `parse_block_line(line: &str, line_no: u32) ->
+  Option<BlockNode>` helper.
+- Parse a line as `Heading` first.
+- Skip blank lines.
+- Parse any remaining non-empty line as `Paragraph`.
+- Add tests for heading/paragraph output and blank-line skipping.
 
-If `BlockNode` is already implemented:
+If `parse_blocks` is already implemented:
 
-- Add the smallest parser-facing function that can produce `Vec<BlockNode>`
-  from headings and ordinary paragraph lines.
-- Keep code blocks, labels, citations, and malformed input out of scope for the
-  first version.
+- Add a minimal `QmdDocument` struct with:
+  - `text: String`
+  - `blocks: Vec<BlockNode>`
+- Add `QmdDocument::parse(text: &str) -> Self`.
+- Have `QmdDocument::parse` call `parse_blocks`.
+- Add one small test showing that document parsing preserves the source text
+  and stores parsed blocks.
 
 Do not:
 
-- rewrite the full parser yet
+- merge multi-line paragraphs yet
+- parse code blocks yet
+- add labels, citations, or crossrefs yet
 - introduce `Box<dyn Trait>`
 - introduce advanced generics
 - add `tower-lsp`
@@ -59,6 +68,14 @@ cargo test
 
 ## Suggested Commit Message
 
+If finishing Lesson 25:
+
 ```text
-feat: add block node enum for heading and paragraph
+feat: parse heading and paragraph block nodes
+```
+
+If moving on to the document model:
+
+```text
+feat: store parsed block nodes in qmd document
 ```

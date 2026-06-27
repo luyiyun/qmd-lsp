@@ -1,6 +1,70 @@
-use regex::Regex;
+use crate::document::{BlockNode, Heading, Paragraph};
+use crate::range::SourceRange;
 
-use crate::document::{CodeBlock, Heading, LabelDef, LabelKind, RefKind, RefUse};
+pub fn parse_blocks(text: &str) -> Vec<BlockNode> {
+    text.lines()
+        .enumerate()
+        .filter_map(|(line_no, line)| parse_block_line(line, line_no as u32))
+        .collect()
+}
+
+fn parse_block_line(line: &str, line_no: u32) -> Option<BlockNode> {
+    if let Some(heading) = Heading::parse_line(line, line_no) {
+        return Some(BlockNode::Heading(heading));
+    }
+
+    if line.trim().is_empty() {
+        return None;
+    }
+
+    let end_character = line.chars().count() as u32;
+    let range = SourceRange::new(line_no, 0, line_no, end_character);
+    Some(BlockNode::Paragraph(Paragraph::new(line, range)))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::element::{QmdElementKind, QmdNode};
+
+    #[test]
+    fn parse_heading_and_paragrah_blocks() {
+        let text = "# Title\n\nPlain text.";
+        let blocks = parse_blocks(text);
+
+        assert_eq!(blocks.len(), 2);
+        assert_eq!(blocks[0].kind(), QmdElementKind::Heading);
+        assert_eq!(blocks[1].kind(), QmdElementKind::Paragraph);
+
+        match &blocks[0] {
+            BlockNode::Heading(heading) => {
+                assert_eq!(heading.title, "Title");
+                assert_eq!(heading.range, SourceRange::new(0, 0, 0, 7));
+            }
+            BlockNode::Paragraph(_) => panic!("excepted heading"),
+        }
+        match &blocks[1] {
+            BlockNode::Paragraph(paragraph) => {
+                assert_eq!(paragraph.text, "Plain text.");
+                assert_eq!(paragraph.range, SourceRange::new(2, 0, 2, 11));
+            }
+            BlockNode::Heading(_) => panic!("expected paragraph block"),
+        }
+    }
+
+    #[test]
+    fn parse_blocks_skips_blank_lines() {
+        let text = "\nFirst paragraph.\n\nSecond paragraph.";
+
+        let blocks = parse_blocks(text);
+
+        assert_eq!(blocks.len(), 2);
+        assert_eq!(blocks[0].display_name(), "First paragraph.");
+        assert_eq!(blocks[0].range(), SourceRange::new(1, 0, 1, 16));
+        assert_eq!(blocks[1].display_name(), "Second paragraph.");
+        assert_eq!(blocks[1].range(), SourceRange::new(3, 0, 3, 17));
+    }
+}
 
 // pub fn parse_headings(text: &str) -> Vec<Heading> {
 //     // let mut headings = Vec::new();
