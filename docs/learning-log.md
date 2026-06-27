@@ -502,3 +502,42 @@ cargo test
 ```text
 docs: initialize learning and agent guidance
 ```
+
+## Lesson 22: Introduce a minimal QmdNode trait for Heading
+
+Date: 2026-06-27
+
+### What I learned
+
+- A `trait` describes shared behavior that different types can implement.
+- A trait method signature says what a type must provide, without saying how.
+- `impl QmdNode for Heading` means `Heading` promises to provide the behavior
+  required by `QmdNode`.
+- Returning `SourceRange` by value is cheap here because `SourceRange` is
+  `Copy`.
+- Returning `String` from `display_name` is reasonable because the display text
+  is constructed dynamically.
+
+### Code change to implement manually
+
+- Add a `QmdNode` trait near `QmdElementKind` in `src/element.rs`.
+- Import and implement that trait for `Heading` in `src/document.rs`.
+- Add one test proving that a `Heading` can be used through the `QmdNode`
+  behavior.
+
+### Baseline checks before manual implementation
+
+```bash
+cargo fmt --check
+cargo clippy
+cargo test
+```
+
+Result: checks pass. `cargo clippy` and `cargo test` still show the expected
+unused/dead-code warnings from inactive parser/document pieces.
+
+### Suggested commit message
+
+```text
+feat: add minimal qmd node trait for headings
+```

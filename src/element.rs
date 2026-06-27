@@ -1,3 +1,5 @@
+use crate::range::SourceRange;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum QmdElementKind {
     Heading,
@@ -7,4 +9,10 @@ pub enum QmdElementKind {
     CitationUse,
     Paragraph,
     Unknown,
+}
+
+pub trait QmdNode {
+    fn kind(&self) -> QmdElementKind;
+    fn range(&self) -> SourceRange;
+    fn display_name(&self) -> String;
 }

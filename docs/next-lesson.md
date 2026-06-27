@@ -2,10 +2,11 @@
 
 ## Goal
 
-Introduce a minimal `QmdNode` trait and implement it for the existing
-`Heading` type.
+After the `QmdNode` trait has been implemented for `Heading`, add the next
+smallest block-level AST node: `Paragraph`.
 
-This should be a small trait-focused lesson, not a parser rewrite.
+Start by confirming that Lesson 22's `QmdNode` changes are present and that
+tests pass. If they are not present yet, finish Lesson 22 first.
 
 ## Files To Read
 
@@ -15,30 +16,24 @@ This should be a small trait-focused lesson, not a parser rewrite.
 
 ## Rust Concepts
 
-- `trait` as a shared behavior contract.
-- Method signatures inside a trait.
-- `impl TraitName for TypeName`.
-- Returning a `Copy` value such as `QmdElementKind`.
-- Returning an owned `String` from `display_name`.
-- Using tests to confirm trait behavior.
+- Reusing a trait across more than one concrete type.
+- Designing a small struct with owned text.
+- Choosing a source range for a multi-line or single-line text node.
+- Avoiding premature parser rewrites while growing the AST model.
 
 ## Minimal Implementation Task
 
-- Define a trait, likely named `QmdNode`, near `QmdElementKind`.
-- Give it methods similar to:
-  - `kind(&self) -> QmdElementKind`
-  - `range(&self) -> SourceRange`
-  - `display_name(&self) -> String`
-- Implement `QmdNode` for `Heading`.
-- Add or adjust tests to call the trait methods on a `Heading`.
+- Add a `Paragraph` struct with text and `SourceRange`.
+- Implement `QmdNode` for `Paragraph`.
+- Add tests for `Paragraph::display_name`, `kind`, and `range`.
 
 Do not:
 
-- rewrite the parser
+- rewrite the full parser yet
 - introduce `Box<dyn Trait>`
 - introduce advanced generics
 - add `tower-lsp`
-- add a full AST enum yet
+- build `QmdIndex` yet
 
 ## Check Commands
 
@@ -51,5 +46,5 @@ cargo test
 ## Suggested Commit Message
 
 ```text
-feat: add minimal qmd node trait for headings
+feat: add paragraph node to qmd ast model
 ```

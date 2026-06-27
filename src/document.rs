@@ -1,4 +1,5 @@
 use crate::{
+    element::{QmdElementKind, QmdNode},
     // parser::{parse_all_labels, parse_all_refs, parse_code_blocks, parse_headings},
     range::SourceRange,
 };
@@ -59,8 +60,16 @@ impl Heading {
         }
         Some(headings)
     }
+}
 
-    pub fn display_name(&self) -> String {
+impl QmdNode for Heading {
+    fn kind(&self) -> QmdElementKind {
+        QmdElementKind::Heading
+    }
+    fn range(&self) -> SourceRange {
+        self.range
+    }
+    fn display_name(&self) -> String {
         format!("{} {}", "#".repeat(self.level as usize), self.title)
     }
 }
@@ -301,4 +310,13 @@ mod tests {
     //
     //         assert_eq!(doc.text, text);
     //     }
+    //
+
+    #[test]
+    fn heading_implements_qmd_node() {
+        let heading = Heading::parse_line("## Methods", 7).unwrap();
+        assert_eq!(heading.kind(), QmdElementKind::Heading);
+        assert_eq!(heading.range(), SourceRange::new(7, 0, 7, 10));
+        assert_eq!(heading.display_name(), "## Methods");
+    }
 }
