@@ -1,5 +1,6 @@
 use crate::{
     element::{QmdElementKind, QmdNode},
+    parser::parse_blocks,
     // parser::{parse_all_labels, parse_all_refs, parse_code_blocks, parse_headings},
     range::SourceRange,
 };
@@ -251,35 +252,21 @@ pub struct CodeBlock {
 
 // ========== Document ==========
 
-// #[derive(Debug, Clone)]
-// pub struct QmdDocument {
-//     pub text: String,
-//     pub headings: Vec<Heading>,
-//     pub labels: Vec<LabelDef>,
-//     pub refs: Vec<RefUse>,
-//     pub code_blocks: Vec<CodeBlock>,
-// }
-//
-// impl QmdDocument {
-//     pub fn parse(text: &str) -> Self {
-//         Self::from_string(text.to_string())
-//     }
-//
-//     pub fn from_string(text: String) -> Self {
-//         let headings = parse_headings(&text);
-//         let labels = parse_all_labels(&text);
-//         let refs = parse_all_refs(&text);
-//         let code_blocks = parse_code_blocks(&text);
-//
-//         Self {
-//             text,
-//             headings,
-//             labels,
-//             refs,
-//             code_blocks,
-//         }
-//     }
-// }
+#[derive(Debug, Clone)]
+pub struct QmdDocument {
+    pub text: String,
+    pub blocks: Vec<BlockNode>,
+}
+
+impl QmdDocument {
+    pub fn parse(text: &str) -> Self {
+        let blocks = parse_blocks(text);
+        Self {
+            text: text.to_string(),
+            blocks,
+        }
+    }
+}
 
 // ========== test ==========
 #[cfg(test)]
@@ -409,5 +396,16 @@ mod tests {
         assert_eq!(block.kind(), QmdElementKind::Paragraph);
         assert_eq!(block.range(), range);
         assert_eq!(block.display_name(), "Plain text.");
+    }
+
+    #[test]
+    fn parse_qmd_document_stores_text_and_blocks() {
+        let text = "# Title\n\nPlain text.";
+        let doc = QmdDocument::parse(text);
+
+        assert_eq!(doc.text, text);
+        assert_eq!(doc.blocks.len(), 2);
+        assert_eq!(doc.blocks[0].kind(), QmdElementKind::Heading);
+        assert_eq!(doc.blocks[1].kind(), QmdElementKind::Paragraph);
     }
 }

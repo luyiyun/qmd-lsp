@@ -665,3 +665,47 @@ warnings remain expected while the AST and parser are still being connected.
 ```text
 feat: parse heading and paragraph block nodes
 ```
+
+## Lesson 26: Store parsed block nodes in QmdDocument
+
+Date: 2026-06-28
+
+### What I learned
+
+- `QmdDocument` is the place where the original source text and parsed block
+  AST can live together.
+- A parser function can borrow input as `&str`, while the document model can
+  store its own `String`.
+- Calling `text.to_string()` is appropriate when a struct needs to own the
+  source text after parsing finishes.
+- `Vec<BlockNode>` lets the document hold different block node variants in one
+  ordered list.
+- Keeping `parse_blocks` in the parser layer and storing its result in
+  `QmdDocument` keeps parsing separate from later indexing and LSP conversion.
+
+### Code change to implement manually
+
+- Import `parse_blocks` in `src/document.rs`.
+- Add a minimal `QmdDocument` with:
+  - `text: String`
+  - `blocks: Vec<BlockNode>`
+- Add `QmdDocument::parse(text: &str) -> Self`.
+- In `parse`, call `parse_blocks(text)`, then store `text.to_string()` and the
+  parsed blocks.
+- Add one test proving that document parsing preserves the source text and
+  stores heading/paragraph blocks.
+
+### Baseline checks before manual implementation
+
+```bash
+cargo test
+```
+
+Result: checks pass. `cargo test` reports 15 passing tests. Existing
+unused/dead-code warnings remain expected while the AST model is still growing.
+
+### Suggested commit message
+
+```text
+feat: store parsed block nodes in qmd document
+```
