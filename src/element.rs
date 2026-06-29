@@ -11,7 +11,7 @@ pub enum QmdElementKind {
     Unknown,
 }
 
-pub trait QmdNode {
+pub trait QmdElement {
     fn kind(&self) -> QmdElementKind;
     fn range(&self) -> SourceRange;
     fn display_name(&self) -> String;

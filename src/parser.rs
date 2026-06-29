@@ -25,7 +25,7 @@ fn parse_block_line(line: &str, line_no: u32) -> Option<BlockNode> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::element::{QmdElementKind, QmdNode};
+    use crate::element::{QmdElement, QmdElementKind};
 
     #[test]
     fn parse_heading_and_paragrah_blocks() {

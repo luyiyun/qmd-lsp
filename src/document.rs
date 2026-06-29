@@ -1,5 +1,5 @@
 use crate::{
-    element::{QmdElementKind, QmdNode},
+    element::{QmdElement, QmdElementKind},
     parser::parse_blocks,
     // parser::{parse_all_labels, parse_all_refs, parse_code_blocks, parse_headings},
     range::SourceRange,
@@ -63,7 +63,7 @@ impl Heading {
     }
 }
 
-impl QmdNode for Heading {
+impl QmdElement for Heading {
     fn kind(&self) -> QmdElementKind {
         QmdElementKind::Heading
     }
@@ -91,7 +91,7 @@ impl Paragraph {
     }
 }
 
-impl QmdNode for Paragraph {
+impl QmdElement for Paragraph {
     fn kind(&self) -> QmdElementKind {
         QmdElementKind::Paragraph
     }
@@ -113,7 +113,7 @@ pub enum BlockNode {
     Paragraph(Paragraph),
 }
 
-impl QmdNode for BlockNode {
+impl QmdElement for BlockNode {
     fn kind(&self) -> QmdElementKind {
         match self {
             Self::Heading(heading) => heading.kind(),
